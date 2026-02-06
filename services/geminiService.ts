@@ -9,11 +9,20 @@ export const getRecommendations = async (
 ): Promise<RecommendationResponse> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   
+  const mealName = mealType === MealType.LUNCH ? '점심' : '저녁';
+  const focus = mealType === MealType.LUNCH 
+    ? '회전율이 빠르고 가성비가 좋으며, 오후 업무에 활력을 줄 수 있는 메뉴' 
+    : '퇴근 후 동료와 술 한잔하기 좋거나, 하루의 피로를 풀어줄 수 있는 든든하고 분위기 있는 곳';
+
   const prompt = `
-    I am an office worker looking for ${mealType === MealType.LUNCH ? 'Lunch' : 'Dinner'} options.
-    Please recommend 5 specific and popular restaurants within ${radius}m of my current location.
-    ${mealType === MealType.LUNCH ? 'Focus on quick, satisfying, and relatively affordable options suitable for a work lunch.' : 'Focus on good places for social dinners, potentially with drinks, or hearty meals.'}
-    Provide a brief, appetizing summary for each.
+    당신은 20년 경력의 미식가이자 직장인들의 마음을 잘 아는 맛집 큐레이터입니다.
+    현재 내 위치에서 ${radius}m 이내에 있는 ${mealName} 식당 5곳을 추천해주세요.
+    
+    [추천 가이드라인]
+    1. ${focus} 위주로 선정해주세요.
+    2. 각 식당이 왜 직장인에게 좋은지, 어떤 메뉴가 인기인지 한국어로 친절하고 전문적이게 설명해주세요.
+    3. 답변 전체를 반드시 한국어로 작성해주세요.
+    4. 식당 이름뿐만 아니라 그곳의 분위기나 특징(예: '혼밥하기 좋음', '웨이팅 주의', '양 많음')을 포함해주세요.
   `;
 
   try {
