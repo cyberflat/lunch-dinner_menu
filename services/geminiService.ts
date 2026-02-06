@@ -29,7 +29,7 @@ export const getRecommendations = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
@@ -80,7 +80,7 @@ export const getRecommendations = async (
       // 원본 출처를 텍스트 하단에 추가하거나 별도로 처리할 수 있습니다.
     };
   } catch (error) {
-    console.error("Gemini 3 API Error:", error);
+    console.error("Gemini 2.5 API Error:", error);
     throw error;
   }
 };
