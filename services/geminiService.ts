@@ -11,46 +11,47 @@ export const getRecommendations = async (
   
   const mealName = mealType === MealType.LUNCH ? '점심' : '저녁';
   const focus = mealType === MealType.LUNCH 
-    ? '회전율이 빠르고 가성비가 좋으며, 오후 업무에 활력을 줄 수 있는 메뉴' 
-    : '퇴근 후 동료와 술 한잔하기 좋거나, 하루의 피로를 풀어줄 수 있는 든든하고 분위기 있는 곳';
+    ? '회전율이 빠르고 가성비가 좋으며, 직장인 점심시간(1시간) 내에 충분히 즐길 수 있는 메뉴' 
+    : '퇴근 후 동료와 스트레스를 풀기 좋은 회식 장소나, 분위기 있는 데이트/모임 장소';
+
+  // Current location context string
+  const locationContext = location 
+    ? `현재 위도: ${location.latitude}, 경도: ${location.longitude}`
+    : "서울 중심가";
 
   const prompt = `
-    당신은 20년 경력의 미식가이자 직장인들의 마음을 잘 아는 맛집 큐레이터입니다.
-    현재 내 위치에서 ${radius}m 이내에 있는 ${mealName} 식당 5곳을 추천해주세요.
+    당신은 대한민국 최고의 맛집 가이드이자 직장인들의 점심/저녁 고민을 해결해주는 전문가입니다.
+    현재 위치(${locationContext})를 기준으로 약 ${radius}m 반경 내에 있는 ${mealName} 식당 5곳을 엄선해 추천해주세요.
     
-    [추천 가이드라인]
-    1. ${focus} 위주로 선정해주세요.
-    2. 각 식당이 왜 직장인에게 좋은지, 어떤 메뉴가 인기인지 한국어로 친절하고 전문적이게 설명해주세요.
-    3. 답변 전체를 반드시 한국어로 작성해주세요.
-    4. 식당 이름뿐만 아니라 그곳의 분위기나 특징(예: '혼밥하기 좋음', '웨이팅 주의', '양 많음')을 포함해주세요.
+    [추천 조건]
+    1. ${focus} 위주로 선정할 것.
+    2. 구글 검색을 통해 최신 리뷰와 인기도를 반영할 것.
+    3. 추천 코멘트는 한국어로 작성하며, 직장인들이 공감할 수 있는 포인트(가성비, 맛, 분위기, 대기 시간 등)를 포함할 것.
+    
+    [답변 형식]
+    - 각 식당의 특징을 '맛점 포인트' 또는 '맛저 포인트'라는 이름으로 친절하게 설명해주세요.
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash-preview", // 최신 Gemini 3 모델로 변경
       contents: prompt,
       config: {
-        tools: [{ googleMaps: {} }],
-        toolConfig: {
-          retrievalConfig: {
-            latLng: location ? {
-              latitude: location.latitude,
-              longitude: location.longitude
-            } : undefined
-          }
-        }
+        tools: [{ googleSearch: {} }], // Gemini 3에 최적화된 검색 도구 사용
       },
     });
 
-    const text = response.text || "추천 정보를 가져오는 데 실패했습니다.";
+    const text = response.text || "추천 정보를 생성하지 못했습니다.";
+    
+    // Google Search Grounding 결과 처리
     const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
     
     const restaurants: Restaurant[] = chunks
-      .filter((chunk: any) => chunk.maps)
+      .filter((chunk: any) => chunk.web)
       .map((chunk: any) => ({
-        title: chunk.maps.title,
-        uri: chunk.maps.uri,
-        description: chunk.maps.placeAnswerSources?.[0]?.reviewSnippets?.[0] || ""
+        title: chunk.web.title,
+        uri: chunk.web.uri,
+        description: "최신 검색 결과에서 추천된 장소입니다."
       }));
 
     return {
@@ -58,7 +59,7 @@ export const getRecommendations = async (
       restaurants
     };
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error("Gemini 3 API Error:", error);
     throw error;
   }
 };
