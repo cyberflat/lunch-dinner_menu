@@ -1,0 +1,7 @@
+{
+  "name": "Lunch & Dinner Picker (맛점맛저)",
+  "description": "A sophisticated location-based menu recommendation service for office workers, powered by Gemini AI with Google Maps grounding.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
