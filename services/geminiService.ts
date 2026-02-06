@@ -8,7 +8,7 @@ export const getRecommendations = async (
   location: Location | null
 ): Promise<RecommendationResponse> => {
   // 생성 시점에 새로운 인스턴스 생성 (최신 키 반영 보장)
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
   
   const mealName = mealType === MealType.LUNCH ? '점심' : '저녁';
   const locationContext = location 
